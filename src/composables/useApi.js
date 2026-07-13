@@ -5,10 +5,14 @@
 // =============================================
 
 const BASE_URL = '/api/v1'
-const TIMEOUT_MS = 3000  // 3 秒超时，无后端时快速降级
+const DEFAULT_TIMEOUT_MS = 8000    // 常规请求 8 秒超时
+const LONG_TIMEOUT_MS = 120000     // 导出/同步等耗时操作 120 秒超时
 
 async function request(url, options = {}) {
-  const { method = 'GET', body, params } = options
+  const { method = 'GET', body, params, timeout } = options
+
+  // 超时优先级：传入参数 > POST/PUT 等写操作默认长超时 > 默认值
+  const effectiveTimeout = timeout ?? (method === 'GET' ? DEFAULT_TIMEOUT_MS : LONG_TIMEOUT_MS)
 
   // 构建 URL
   let fullUrl = `${BASE_URL}${url}`
@@ -23,7 +27,7 @@ async function request(url, options = {}) {
 
   // 使用 AbortController 实现超时
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout)
 
   const fetchOptions = {
     method,
@@ -58,24 +62,24 @@ async function request(url, options = {}) {
 }
 
 export function useApi() {
-  function get(url, params) {
-    return request(url, { method: 'GET', params })
+  function get(url, params, opts = {}) {
+    return request(url, { method: 'GET', params, ...opts })
   }
 
-  function post(url, body) {
-    return request(url, { method: 'POST', body })
+  function post(url, body, opts = {}) {
+    return request(url, { method: 'POST', body, ...opts })
   }
 
-  function put(url, body) {
-    return request(url, { method: 'PUT', body })
+  function put(url, body, opts = {}) {
+    return request(url, { method: 'PUT', body, ...opts })
   }
 
-  function patch(url, body) {
-    return request(url, { method: 'PATCH', body })
+  function patch(url, body, opts = {}) {
+    return request(url, { method: 'PATCH', body, ...opts })
   }
 
-  function del(url) {
-    return request(url, { method: 'DELETE' })
+  function del(url, opts = {}) {
+    return request(url, { method: 'DELETE', ...opts })
   }
 
   function getDownloadUrl(path) {

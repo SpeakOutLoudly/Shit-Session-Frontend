@@ -4,7 +4,7 @@ import Login from '../views/Login.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/transcription'
+    redirect: '/dashboard'
   },
   {
     path: '/login',
