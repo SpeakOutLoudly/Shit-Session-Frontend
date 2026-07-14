@@ -1,12 +1,5 @@
 <template>
   <div class="dashboard">
-    <div class="page-header">
-      <h2>工作台概览</h2>
-      <p v-if="store.currentMeeting">当前会议：{{ store.currentMeeting.title }}
-        <span class="tag" :class="currentStatusClass" style="margin-left: 8px;">{{ currentStatusText }}</span>
-      </p>
-      <p v-else>欢迎回来，请创建或开始一场会议</p>
-    </div>
 
     <!-- 统计卡片 -->
     <div class="grid grid-4 mb-6">

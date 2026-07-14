@@ -1,9 +1,5 @@
 <template>
   <div class="summary-view">
-    <div class="page-header">
-      <h2>会议智能摘要</h2>
-      <p>AI 自动提取会议核心要素，生成结构化会议纪要</p>
-    </div>
 
     <!-- 选择会议 -->
     <div class="card mb-4">

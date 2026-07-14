@@ -1,9 +1,5 @@
 <template>
   <div class="meeting-room">
-    <div class="page-header">
-      <h2>会议室</h2>
-      <p>创建会议后由边缘设备录制并识别，实时字幕通过 SSE 推送</p>
-    </div>
 
     <!-- ====== 状态：无会议 → 创建会议表单 ====== -->
     <template v-if="!store.currentMeeting">
@@ -109,18 +105,7 @@
               </div>
             </div>
             <div class="transcript-list" ref="transcriptListRef">
-              <!-- 当前正在识别的 ONLINE 字幕 -->
-              <div v-if="sse.interimText.value" class="utterance online">
-                <div class="utterance-header">
-                  <span class="speaker-tag" style="background: var(--primary-bg); color: var(--primary);">{{ lastSpeaker || '识别中' }}</span>
-                  <span class="utterance-time">{{ now }}</span>
-                  <span class="live-badge">实时</span>
-                </div>
-                <div class="utterance-text interim">
-                  {{ sse.interimText.value }}<span class="cursor-blink">|</span>
-                </div>
-              </div>
-              <!-- 已确认的 OFFLINE 字幕（AI 校正） -->
+              <!-- 字幕列表：ONLINE 和 OFFLINE 都在 displaySegments 中，一句话只占一行 -->
               <div v-for="seg in reversedSegments" :key="seg.segmentId" class="utterance" :class="seg.recognitionMode === 'ONLINE' ? 'online' : 'offline'">
                 <div class="utterance-header">
                   <span class="speaker-tag" :style="{ background: getSpeakerColor(seg.speaker) + '20', color: getSpeakerColor(seg.speaker) }">
@@ -131,9 +116,11 @@
                   <span v-else-if="seg.recognitionMode === 'ONLINE'" class="live-badge">实时</span>
                   <button class="btn btn-sm btn-ghost" style="margin-left: auto;" @click="copyText(seg.subtitle, seg.segmentId)">{{ isJustCopied(seg.segmentId) ? '已复制' : '复制' }}</button>
                 </div>
-                <div class="utterance-text" :class="{ interim: seg.recognitionMode !== 'OFFLINE' }">{{ seg.subtitle }}</div>
+                <div class="utterance-text" :class="{ interim: seg.recognitionMode !== 'OFFLINE' }">
+                  {{ seg.subtitle }}<span v-if="seg.recognitionMode !== 'OFFLINE' && seg === reversedSegments[0]" class="cursor-blink">|</span>
+                </div>
               </div>
-              <div v-if="sse.displaySegments.value.length === 0 && !sse.interimText.value" class="empty-state">
+              <div v-if="sse.displaySegments.value.length === 0" class="empty-state">
                 <div class="empty-text">等待字幕推送...</div>
                 <div class="empty-hint">边缘设备识别后将实时显示在此处</div>
               </div>
@@ -332,10 +319,6 @@ const sseStatusText = computed(() => {
 })
 const sseStatusClass = computed(() => sse.isConnected.value ? 'sse-connected' : 'sse-connecting')
 const reversedSegments = computed(() => [...sse.displaySegments.value].reverse())
-const lastSpeaker = computed(() => {
-  const segs = sse.finalSegments.value
-  return segs.length === 0 ? '' : segs[segs.length - 1].speaker
-})
 
 const speakerColors = ['#D1453B','#E4A11B','#22A06B','#D9754A','#8B5CF6','#EC4899','#06B6D4','#F97316']
 
@@ -413,7 +396,7 @@ watch(() => store.meetingStatus, (s) => {
   } else { if (timeInterval) { clearInterval(timeInterval); timeInterval = null } }
 })
 
-watch([() => sse.finalSegments.value.length, () => sse.interimText.value], async () => {
+watch([() => sse.displaySegments.value.length], async () => {
   await nextTick()
   const el = transcriptListRef.value
   if (el) el.scrollTop = 0

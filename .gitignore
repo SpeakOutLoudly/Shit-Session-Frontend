@@ -1,4 +1,6 @@
 .claude/*
 .impeccable/*
+.venv/*
+.tests/*
 *.md
 *.doc
