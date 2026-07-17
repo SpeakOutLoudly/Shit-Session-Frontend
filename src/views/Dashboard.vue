@@ -4,31 +4,39 @@
     <!-- 统计卡片 -->
     <div class="grid grid-4 mb-6">
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--primary-bg);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <div class="stat-header">
+          <div class="stat-icon" style="background: var(--primary-bg);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </div>
+          <div class="stat-label">总会议数</div>
         </div>
-        <div class="stat-label">总会议数</div>
         <div class="stat-value">{{ store.stats.total }}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--danger-bg);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+        <div class="stat-header">
+          <div class="stat-icon" style="background: var(--danger-bg);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+          </div>
+          <div class="stat-label">录制中</div>
         </div>
-        <div class="stat-label">录制中</div>
         <div class="stat-value text-danger">{{ store.stats.recording }}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--success-bg);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <div class="stat-header">
+          <div class="stat-icon" style="background: var(--success-bg);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="stat-label">已结束</div>
         </div>
-        <div class="stat-label">已结束</div>
         <div class="stat-value text-success">{{ store.stats.finished }}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--info-bg);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <div class="stat-header">
+          <div class="stat-icon" style="background: var(--info-bg);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="stat-label">已生成纪要</div>
         </div>
-        <div class="stat-label">已生成纪要</div>
         <div class="stat-value text-primary">{{ store.stats.withSummary }}</div>
       </div>
     </div>
@@ -44,7 +52,10 @@
           <div class="card-body card-body-compact">
             <!-- 搜索与简化筛选 -->
             <div class="filter-bar">
-              <input class="form-input" v-model="filters.keyword" placeholder="搜索标题或编号" style="flex: 1;" @input="onFilterChange" />
+              <div class="search-wrap">
+                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input class="form-input search-input" v-model="filters.keyword" placeholder="搜索" @input="onFilterChange" />
+              </div>
               <button class="btn btn-sm btn-ghost" @click="showAdvancedFilters = !showAdvancedFilters">
                 {{ showAdvancedFilters ? '收起' : '筛选' }}
               </button>
@@ -73,14 +84,15 @@
             </transition>
           </div>
           <div class="card-body card-body-flush">
-            <div v-if="loading && filteredMeetings.length === 0" class="empty-state" style="padding: 32px;">
-              <div class="empty-text">加载中...</div>
-            </div>
-            <div v-else-if="filteredMeetings.length === 0" class="empty-state" style="padding: 32px;">
-              <div class="empty-text">暂无会议记录</div>
-              <div class="empty-hint">点击"新建会议"开始</div>
-            </div>
-            <div v-else class="meeting-list">
+            <div class="meeting-list-container">
+              <div v-if="loading && filteredMeetings.length === 0" class="empty-state" style="padding: 32px;">
+                <div class="empty-text">加载中...</div>
+              </div>
+              <div v-else-if="filteredMeetings.length === 0" class="empty-state" style="padding: 32px;">
+                <div class="empty-text">暂无会议记录</div>
+                <div class="empty-hint">点击"新建会议"开始</div>
+              </div>
+              <div v-else class="meeting-list">
               <div class="meeting-item" v-for="m in pagedMeetings" :key="m.id" @click="selectMeeting(m)">
                 <div class="meeting-icon">
                   <span v-if="m.status === 'RECORDING'" class="status-icon status-recording">
@@ -115,6 +127,7 @@
                   </button>
                 </div>
               </div>
+            </div>
             </div>
             <!-- 分页 -->
             <div v-if="totalPages > 1" class="pagination-bar">
@@ -408,6 +421,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.meeting-list-container { min-height: 290px; max-height: 290px; overflow-y: auto; }
 .meeting-list { display: flex; flex-direction: column; }
 .meeting-item {
   display: flex; align-items: center; gap: 12px; padding: 12px 20px;
@@ -422,7 +436,11 @@ onMounted(() => {
 .meeting-meta { font-size: var(--text-caption); color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
 .filter-bar { display: flex; gap: 8px; margin-bottom: 8px; }
+.search-wrap { position: relative; flex: 1; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 1; }
+.search-input { padding: 6px 10px 6px 30px !important; font-size: 13px !important; height: 32px !important; }
 .filter-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.filter-row .form-select { font-size: 13px !important; padding: 4px 8px !important; height: 32px !important; }
 
 .filter-expand-enter-active,
 .filter-expand-leave-active {

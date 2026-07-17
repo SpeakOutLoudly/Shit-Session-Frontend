@@ -358,7 +358,7 @@ const filteredTasks = computed(() => {
     list = list.filter(t => (t.title || '').toLowerCase().includes(kw))
   }
   list.sort((a, b) => {
-    const pw = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+    const pw = { HIGH: 2, MEDIUM: 1, LOW: 0 }
     return (pw[a.priority] || 3) - (pw[b.priority] || 3)
   })
   return list
@@ -377,7 +377,7 @@ const drawerTasks = computed(() => {
   if (!drawerMeetingId.value) return []
   let list = tasks.value.filter(t => t.meetingId === Number(drawerMeetingId.value))
   list.sort((a, b) => {
-    const pw = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+    const pw = { HIGH: 2, MEDIUM: 1, LOW: 0 }
     return (pw[a.priority] || 3) - (pw[b.priority] || 3)
   })
   return list
@@ -663,7 +663,7 @@ onMounted(() => {
   padding: 12px 14px; border: 1px solid var(--border-light);
   border-radius: var(--radius-sm); transition: var(--transition);
 }
-.drawer-task-item.task-urgent { border-left: 2px solid var(--danger); }
+.drawer-task-item.task-urgent { border-top: 2px solid var(--danger); }
 .dt-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .dt-check { width: 18px; height: 18px; flex-shrink: 0; }
 .dt-title { font-size: var(--text-small); font-weight: 500; cursor: pointer; flex: 1; }

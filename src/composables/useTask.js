@@ -11,7 +11,12 @@ export function useTask() {
 
   async function listTasks(params = {}) {
     const page = await api.get('/tasks', params)
-    store.tasks = page.records || []
+    const records = page.records || []
+    // 按 id 合并而非覆盖，避免丢失本地创建/修改的任务
+    const map = new Map()
+    store.tasks.forEach(t => map.set(Number(t.id), t))
+    records.forEach(t => map.set(Number(t.id), t))
+    store.tasks = Array.from(map.values())
     return page
   }
 

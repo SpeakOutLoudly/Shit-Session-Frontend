@@ -1,6 +1,10 @@
 .claude/*
 .impeccable/*
 .venv/*
-.tests/*
+tests/*
 *.md
 *.doc
+.pytest_cache/*
+文档/*
+dist/*
+node_modules/*

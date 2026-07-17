@@ -555,10 +555,12 @@ async function handleSync() {
   syncError.value = ''
   syncResult.value = null
 
+  // 30 秒超时保底：保证按钮不会卡死
+  const safetyTimer = setTimeout(() => { syncing.value = false }, 30000)
+
   try {
     await refreshOAuthToken()
 
-    // 自动导出需要的文档
     if (syncOptions.uploadWord) {
       try { await api.post(`/minutes/${selectedMinutes.value.id}/exports`, { format: 'WORD', includeTasks: syncOptions.syncTasks, includeSubtitles: false }) } catch (e) {}
     }
@@ -566,10 +568,10 @@ async function handleSync() {
       try { await api.post(`/minutes/${selectedMinutes.value.id}/exports`, { format: 'PDF', includeTasks: syncOptions.syncTasks, includeSubtitles: false }) } catch (e) {}
     }
 
-    // folderToken: 空字符串 → undefined（不走根目录，走后端默认逻辑）
     const result = await api.post(`/minutes/${selectedMinutes.value.id}/sync/feishu`, {
       authMode: 'USER',
       oauthUserKey: oauthUser.value.userKey,
+      syncDoc: false,             // 飞书在线文档已废弃，必须显式关闭
       uploadWord: syncOptions.uploadWord,
       uploadPdf: syncOptions.uploadPdf,
       syncTasks: syncOptions.syncTasks,
@@ -580,26 +582,24 @@ async function handleSync() {
         : undefined
     })
 
+    clearTimeout(safetyTimer)
     syncResult.value = result
 
-    // 判断是否真的失败了
-    // syncTasks=true 但无任务时后端返回 PARTIAL_SUCCESS，这不影响文件上传
-    const hasFailed = result.syncStatus === 'FAILED'
-    const isPartialWithError = result.syncStatus === 'PARTIAL_SUCCESS' && result.errorMessage && !result.wordFileUrl && !result.pdfFileUrl
-
-    if (result.syncStatus === 'SUCCESS' || (result.syncStatus === 'PARTIAL_SUCCESS' && !result.errorMessage)) {
+    if (result.syncStatus === 'SUCCESS') {
       toast.success('同步到飞书成功')
-    } else if (isPartialWithError || hasFailed) {
-      toast.error(result.errorMessage || '同步失败')
+    } else if (result.syncStatus === 'PARTIAL_SUCCESS' && result.wordFileUrl) {
+      toast.success('同步到飞书成功')
+    } else if (result.syncStatus === 'PARTIAL_SUCCESS') {
+      toast.warning(result.errorMessage || '部分内容未成功')
     } else {
-      // PARTIAL_SUCCESS 但文件上传成功 → 也算成功
-      toast.success('同步到飞书成功')
+      toast.error(result.errorMessage || '同步失败')
     }
   } catch (err) {
+    clearTimeout(safetyTimer)
     syncError.value = `同步失败: ${err.message}`
     toast.error('同步到飞书失败')
   } finally {
-    syncing.value = false  // 确保按钮无论如何都恢复
+    syncing.value = false
   }
 }
 

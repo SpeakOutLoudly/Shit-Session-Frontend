@@ -27,6 +27,21 @@
           <span v-if="item.badge && !sidebarCollapsed" class="nav-badge">{{ item.badge }}</span>
         </router-link>
       </nav>
+      <div class="sidebar-recent" v-show="!sidebarCollapsed">
+        <div class="sidebar-recent-label">最近会议</div>
+        <div class="sidebar-recent-list">
+          <div
+            v-for="m in recentMeetings"
+            :key="m.id"
+            class="sidebar-recent-item"
+            @click="goToMeeting(m)"
+          >
+            <span class="sri-dot" :class="'sri-' + (m.status || 'FINISHED').toLowerCase()"></span>
+            <span class="sri-title">{{ m.title }}</span>
+          </div>
+          <div v-if="recentMeetings.length === 0" class="sidebar-recent-empty">暂无会议</div>
+        </div>
+      </div>
       <div class="sidebar-footer" v-show="!sidebarCollapsed">
         <div class="system-status">
           <span class="status-dot online"></span>
@@ -185,6 +200,20 @@ const sidebarCollapsed = ref(false)
 
 const isLoginPage = computed(() => route.name === 'Login')
 
+const recentMeetings = computed(() => {
+  const list = store.meetingList || []
+  return [...list].sort((a, b) => {
+    const ta = a.createdAt || a.startTime || ''
+    const tb = b.createdAt || b.startTime || ''
+    return tb.localeCompare(ta)
+  }).slice(0, 3)
+})
+
+function goToMeeting(m) {
+  store.currentMeeting = m
+  router.push('/transcription')
+}
+
 const tasksCount = computed(() => {
   const tasks = store.tasks || []
   const pending = tasks.filter(t => t.status === 'TODO' || t.status === 'DOING').length
@@ -245,4 +274,34 @@ function logout() {
   font-weight: 500;
   color: var(--text-secondary);
 }
+
+.sidebar-recent {
+  padding: 8px 16px 4px;
+  border-top: 1px solid var(--border-light);
+  margin-top: auto;
+}
+.sidebar-recent-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.sidebar-recent-list { display: flex; flex-direction: column; gap: 2px; }
+.sidebar-recent-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  border-radius: 4px; cursor: pointer; transition: var(--transition);
+}
+.sidebar-recent-item:hover { background: var(--sidebar-active-hover-bg); }
+.sri-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sri-recording { background: var(--danger); }
+.sri-finished { background: var(--success); }
+.sri-cancelled { background: var(--text-muted); }
+.sri-not_started { background: var(--warning); }
+.sri-title {
+  font-size: var(--text-body); color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-recent-empty { font-size: 12px; color: var(--text-muted); padding: 6px 8px; }
 </style>
